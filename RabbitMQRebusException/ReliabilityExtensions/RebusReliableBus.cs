@@ -5,7 +5,7 @@ using MassTransit;
 using Rebus.Bus;
 using Rebus.Bus.Advanced;
 
-namespace RabbitMQRebusException
+namespace RabbitMQRebusException.ReliabilityExtensions
 {
     public class RebusReliableBus : ReliablePublisher, IBus
     {

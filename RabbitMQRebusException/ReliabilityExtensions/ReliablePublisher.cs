@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using NLog;
 
-namespace RabbitMQRebusException
+namespace RabbitMQRebusException.ReliabilityExtensions
 {
     public class ReliablePublisher : IDisposable
     {
