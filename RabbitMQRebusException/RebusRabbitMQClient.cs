@@ -3,6 +3,7 @@ using Rebus.Activation;
 using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
+using Rebus.Retry.Simple;
 
 namespace RabbitMQRebusException
 {
@@ -15,7 +16,9 @@ namespace RabbitMQRebusException
         public BuiltinHandlerActivator Adapter { get; set; }
         public IBus Bus { get; set; }
 
-        public RebusRabbitMQClient(TimeSpan timeout, string connectionString = "amqp://guest:guest@localhost", string queueName = "test-rebus")
+        public RebusRabbitMQClient(TimeSpan timeout, 
+            string connectionString = "amqp://guest:guest@localhost", 
+            string queueName = "test-rebus")
         {
             _timeout = timeout;
             _connectionString = connectionString;
@@ -27,6 +30,7 @@ namespace RabbitMQRebusException
             Adapter = new BuiltinHandlerActivator();
 
             var configuration = Configure.With(Adapter)
+                .Options(opts => opts.SimpleRetryStrategy(maxDeliveryAttempts: int.MaxValue))
                 .Transport(t => t.UseRabbitMq(_connectionString, _queueName)
                     .CustomizeConnectionFactory(cf =>
                     {
@@ -36,7 +40,6 @@ namespace RabbitMQRebusException
                 .Routing(r => r.TypeBased());
 
             Bus = configuration.Start();
-
         }
 
         public void Dispose()

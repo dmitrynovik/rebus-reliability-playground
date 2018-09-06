@@ -12,7 +12,9 @@ namespace RabbitMQRebusException
         private readonly IBus _bus;
 
         public RebusReliableBus(IBus bus, double interval = 5000)
-            : base(message => bus.Publish(message.Payload, message.Headers), interval)
+            : base(message => message.Topic == null ? 
+                bus.Publish(message.Payload, message.Headers): 
+                bus.Advanced.Topics.Publish(message.Topic, message.Payload, message.Headers), interval)
         {
             _bus = bus;
         }
@@ -41,7 +43,7 @@ namespace RabbitMQRebusException
 
         public Task Unsubscribe(Type eventType) => _bus.Unsubscribe(eventType);
 
-        public Task Publish(object payload, Dictionary<string, string> optionalHeaders = null) => base.Publish(new Message(NewId.NextGuid(), payload, optionalHeaders));
+        public Task Publish(object payload, Dictionary<string, string> optionalHeaders = null) => base.Publish(new Message(NewId.NextGuid(), payload, null, optionalHeaders));
 
         public IAdvancedApi Advanced => _bus.Advanced;
     }

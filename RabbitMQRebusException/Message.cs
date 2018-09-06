@@ -6,17 +6,21 @@ namespace RabbitMQRebusException
 {
     public class Message
     {
-        public Message(object payload, Dictionary<string, string> headers = null) : this(NewId.NextGuid(), payload, headers) {  }
+        public Message() {  }
 
-        public Message(Guid id, object payload, Dictionary<string, string> headers = null)
+        public Message(object payload, string topic = null, Dictionary<string, string> headers = null) : this(NewId.NextGuid(), payload, topic, headers) {  }
+
+        public Message(Guid id, object payload, string topic = null, Dictionary<string, string> headers = null)
         {
             Id = id;
             Payload = payload;
             Headers = headers;
+            Topic = topic;
         }
 
-        public Guid Id { get; }
-        public object Payload { get;  }
-        public Dictionary<string, string> Headers { get; }
+        public Guid Id { get; set; }
+        public object Payload { get; set; }
+        public string Topic { get; set; }
+        public Dictionary<string, string> Headers { get; set; }
     }
 }

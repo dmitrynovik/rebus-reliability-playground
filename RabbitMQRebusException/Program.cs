@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Rebus.Bus;
 
@@ -8,28 +9,21 @@ namespace RabbitMQRebusException
     {
         static void Main(string[] args)
         {
-            TimeSpan heartbeat;
-            if (args.Length > 0 && int.TryParse(args[0], out var seconds))
-            {
-                heartbeat = TimeSpan.FromSeconds(seconds);
-            }
-            else
-            {
-                heartbeat = TimeSpan.FromSeconds(10);
-            }
-
             Console.WriteLine($"Running from {Environment.CurrentDirectory}");
             Console.WriteLine("Starting Rebus RabbitMQ client ...");
-
             try
             {
-                using (var client = new RebusRabbitMQClient(heartbeat))
+                using (var client = new RebusRabbitMQClient(ParseRabbitMQTimeout(args)))
                 {
                     client.Start();
+                    
+                    var sub = new Subscriber();
+                    Console.WriteLine("Subscribing to Rebus RabbitMQ client ...");
+                    sub.Subscribe(client).Wait();
 
                     //Console.WriteLine("Connected. Publishing test message");
                     var cancellationTokenSource = new CancellationTokenSource();
-                    StartPublishing(client.Bus, "test-message", cancellationTokenSource.Token);
+                    StartPublishing(client.Bus, cancellationTokenSource.Token);
 
                     Console.WriteLine("Press any key to exit");
                     Console.Read();
@@ -43,12 +37,15 @@ namespace RabbitMQRebusException
             }
         }
 
-        private static void StartPublishing(IBus bus, object message, CancellationToken cancellation)
+        private static TimeSpan ParseRabbitMQTimeout(IReadOnlyList<string> args) => args.Count > 0 && int.TryParse(args[0], out var seconds) ? 
+            TimeSpan.FromSeconds(seconds) : TimeSpan.FromSeconds(10);
+
+        private static void StartPublishing(IBus bus, CancellationToken cancellation)
         {
-            var publisher = new RebusReliableBus(bus);
+            ulong counter = 0;
             while (!cancellation.IsCancellationRequested)
             {
-                publisher.Publish(new Message(message));
+                bus.Publish(new Message(++counter));
                 Thread.Sleep(1000);
             }
         }
